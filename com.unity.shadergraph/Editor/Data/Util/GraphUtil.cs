@@ -876,7 +876,7 @@ namespace UnityEditor.ShaderGraph
             var graph = new GraphData();
             graph.AddNode(node);
             graph.path = "Shader Graphs";
-            File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
+            FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
 
             UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath<Shader>(pathName);
@@ -1081,6 +1081,7 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl""");
+                finalShader.AppendLine(@"#define SHADERGRAPH_PREVIEW 1");
                 finalShader.AppendNewLine();
 
                 finalShader.AppendLines(shaderProperties.GetPropertiesDeclaration(0, mode));
