@@ -5,9 +5,6 @@
 CBUFFER_START(Uniform)
     uint maxNb;
     uint offset;
-
-    // Used by XR single-pass instancing and set by the render pipeline
-    uint srpInstanceCountMultiplier;
 CBUFFER_END
 
 #define NB_THREADS_PER_GROUP 64
@@ -34,7 +31,6 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
         uint elementCount = inputGpuBuffer.Load(index << 2);
         InputData data = inputCpuBuffer[index];
 
-        uint instanceCountMultiplier = max(1, srpInstanceCountMultiplier);
         uint4 args = (uint4)0;
 
         switch(data.type)
@@ -42,14 +38,14 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
             case 0: // point
             {
                 args.x = elementCount;
-                args.y = instanceCountMultiplier;
+                args.y = 1;
                 break;
             }
 
             case 1: // lines
             {
                 args.x = elementCount * 2;
-                args.y = instanceCountMultiplier;
+                args.y = 1;
                 break;
             }
 
@@ -66,7 +62,6 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                     args.x = elementCount * 6;
                     args.y = 1;
                 }
-                args.y *= instanceCountMultiplier;
                 break;
             }
 
@@ -83,14 +78,13 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                     args.x = elementCount * 36;
                     args.y = 1;
                 }
-                args.y *= instanceCountMultiplier;
                 break;
             }
 
             case 4: // meshes
             {
                 args.x = data.indexCount;
-                args.y = elementCount * instanceCountMultiplier;
+                args.y = elementCount;
                 args.z = data.startIndex;
                 args.w = data.baseVertex;
                 break;
@@ -99,7 +93,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
             case 5: // triangles
             {
                 args.x = elementCount * 3;
-                args.y = instanceCountMultiplier;
+                args.y = 1;
                 break;
             }
 
@@ -116,7 +110,6 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                     args.x = elementCount * 18;
                     args.y = 1;
                 }
-                args.y *= instanceCountMultiplier;
                 break;
 			}
 
@@ -135,12 +128,18 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
             }
         }
 
-        uint indexOutput = index * 5;
+        uint indexOutput = index * 10;
         outputIndirectArgs[indexOutput + 0] = args.x; //IndexCountPerInstance or ThreadGroupCountX
         outputIndirectArgs[indexOutput + 1] = args.y; //InstanceCount or ThreadGroupCountY
         outputIndirectArgs[indexOutput + 2] = args.z; //startIndex or ThreadGroupCountz
         outputIndirectArgs[indexOutput + 3] = args.w; //baseVertex
         // next uint (StartInstance) set to 0 at initialization
 
+        // XR single-pass instancing support (same data as above but instanceCount is multiplied by the number of instanced views)
+        outputIndirectArgs[indexOutput + 5] = args.x;
+        outputIndirectArgs[indexOutput + 6] = args.y * ((data.type != 0xffffffff) ? 2 : 1);
+        outputIndirectArgs[indexOutput + 7] = args.z;
+        outputIndirectArgs[indexOutput + 8] = args.w;
+        // next uint (StartInstance) set to 0 at initialization
     }
 }
