@@ -30,9 +30,6 @@ namespace UnityEngine.Rendering.LWRP
             public static int _ScaledScreenParams;
             public static int _ScreenParams;
             public static int _WorldSpaceCameraPos;
-
-            // XR single-pass instancing support for VisualEffectGraph
-            public static int srpInstanceCountMultiplier;
         }
 
         public const string k_ShaderTagName = "LightweightPipeline";
@@ -92,7 +89,6 @@ namespace UnityEngine.Rendering.LWRP
             PerCameraBuffer._ScreenParams = Shader.PropertyToID("_ScreenParams");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
             PerCameraBuffer._WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
-            PerCameraBuffer.srpInstanceCountMultiplier = Shader.PropertyToID("srpInstanceCountMultiplier");
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
@@ -518,10 +514,6 @@ namespace UnityEngine.Rendering.LWRP
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
-
-            // XRTODO: support for XR SDK
-            int viewCount = (cameraData.isStereoEnabled && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced) ? 2 : 1;
-            Shader.SetGlobalInt(PerCameraBuffer.srpInstanceCountMultiplier, viewCount);
         }
 
         static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>

@@ -293,7 +293,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _XRViewCount = Shader.PropertyToID("_XRViewCount");
         public static readonly int _XRViewConstants = Shader.PropertyToID("_XRViewConstants");
-        public static readonly int srpInstanceCountMultiplier = Shader.PropertyToID("srpInstanceCountMultiplier");
 
         public static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");
         public static readonly int _DepthValuesTexture             = Shader.PropertyToID("_DepthValuesTexture");
